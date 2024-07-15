@@ -1,0 +1,68 @@
+version: '3'
+
+services:
+  postgres:
+    hostname: ditda-sql
+    container_name: ditda-sql
+    image: 'postgres:14-bullseye'
+    environment:
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: 'upana'
+      PGDATA: /data/postgres
+    volumes:
+      - c:\lab\postgres:/data/postgres
+    ports:
+      - "10008:5432"
+    networks:
+      - bddnet
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  pgadmin:
+    hostname: ditda-pgadmin
+    container_name: ditda-pgadmin
+    image: 'dpage/pgadmin4:6.1'
+    environment:
+      PGADMIN_DEFAULT_EMAIL: 'rlavagnino@upana.edu.gt'
+      PGADMIN_DEFAULT_PASSWORD: 'upana'
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - c:\lab\pgadmin:/var/lib/pgadmin
+    ports:
+      - "10009:80"
+    networks:
+      - bddnet
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://ditda-pgadmin:80/misc/ping"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  sqlite:
+    hostname: ditda-sqlite
+    container_name: ditda-sqlite
+    image: 'bitnami/sqlite:latest'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - c:\lab\sqlite:/bitnami/sqlite
+    ports:
+      - "10011:5432"
+    networks:
+      - bddnet
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "sqlite3", "--version"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+ 
+
+networks:
+  bddnet:
+    driver: bridge
